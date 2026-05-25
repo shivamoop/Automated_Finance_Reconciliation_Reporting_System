@@ -1,0 +1,471 @@
+{
+  "name": "Product_entry_automation",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5f4e8570-1bc3-4844-98c5-58e2b625e9e6",
+              "name": "attachments",
+              "value": "={{ $('Gmail Trigger1').item.binary.keys() }}",
+              "type": "array"
+            },
+            {
+              "id": "856a8a32-061c-49c8-835a-98476a188aee",
+              "name": "message id",
+              "value": "={{ $('Gmail Trigger1').item.json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        96,
+        192
+      ],
+      "id": "b18d47e1-337d-4409-b268-efb5b13bd9c4",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "message id",
+              "field2": "id"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        416,
+        352
+      ],
+      "id": "47fee213-6931-4945-9d19-79ab9c6fcd6c",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "labelIds": [
+            "Label_6450704607269624494"
+          ]
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -304,
+        352
+      ],
+      "id": "1650ca95-6f3a-4a18-b1b8-3fc945efca24",
+      "name": "Gmail Trigger1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2kmiEvCU10hLXikl",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $('Gmail Trigger1').item.json.id}}",
+        "simple": false,
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        192,
+        576
+      ],
+      "id": "77f2ea9e-eccb-4b35-b1f6-c5922d2decbe",
+      "name": "Get a message1",
+      "webhookId": "7e0188da-8c1d-4f14-b370-869828ffcb4f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2kmiEvCU10hLXikl",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "attachments ",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        256,
+        192
+      ],
+      "id": "ac6432a3-91c3-4bfe-b719-4907d63aab93",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "={{ $json.attachments }}",
+        "options": {
+          "headerRow": true,
+          "range": "=",
+          "rawData": false,
+          "readAsString": false
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        592,
+        448
+      ],
+      "id": "f28e594c-24b5-491c-96d9-aca4ae08973e",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI",
+          "mode": "list",
+          "cachedResultName": "Ajay/ Industrial",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 562442612,
+          "mode": "list",
+          "cachedResultName": "Customer Roaster",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit#gid=562442612"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        0
+      ],
+      "id": "984e08e8-5043-422f-b3a8-fb987b572e15",
+      "name": "Customer_roaster",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2SlEVNbkuAWDQHg",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Skip first 10 rows\nconst rows = items.slice(10);\n\n// Desired headers\nconst headers = [\n  \"Date\",\n  \"Particulars\",\n  \"Vch Type\",\n  \"Vch No.\",\n  \"Debit Amount\",\n  \"Credit Amount\",\n  \"undefined\",\n  \"undefined\",\n  \"undefined\",\n  \"undefined\"\n];\n\n// Excel serial → ISO date\nfunction excelDateToISO(serial) {\n  if (typeof serial !== \"number\") return serial;\n  const base = new Date(Date.UTC(1899, 11, 30));\n  return new Date(base.getTime() + serial * 86400000)\n    .toISOString()\n    .slice(0, 10);\n}\n\nconst output = rows.map(item => {\n  const values = Object.values(item.json);\n  const newRow = {};\n\n  headers.forEach((h, idx) => {\n    let val = values[idx] ?? null;\n\n    // ✅ Correct Date column\n    if (h === \"Date\") {\n      val = excelDateToISO(val);\n    }\n\n    newRow[h] = val;\n  });\n\n  return { json: newRow };\n});\n\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        448
+      ],
+      "id": "aedb4ea4-4b79-42d5-aefb-251a93c8743d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = [];\n\nlet currentDate = null;\nlet currentParty = null;\nlet inInvoice = false;\n\nconst isISODate = v =>\n  typeof v === \"string\" && /^\\d{4}-\\d{2}-\\d{2}$/.test(v);\n\n// ✅ Units OPTIONAL now\nconst qtyRegex  = /^[\\d.]+(\\s*(nos|ltr|kg|pcs))?$/i;\nconst rateRegex = /^[\\d.]+(\\s*\\/\\s*(nos|ltr|kg|pcs))?$/i;\n\nfor (const item of items) {\n  const r = item.json;\n\n  /* 1️⃣ Detect invoice header */\n  if (isISODate(r.Date)) {\n    inInvoice = r[\"Vch Type\"] === \"Tax Invoice\";\n    currentDate  = inInvoice ? r.Date : null;\n    currentParty = inInvoice ? r.Particulars : null;\n    continue;\n  }\n\n  /* 2️⃣ Product rows under Tax Invoice */\n  if (\n    inInvoice &&\n    currentDate &&\n    currentParty &&\n    typeof r.Date === \"string\" &&\n    qtyRegex.test(String(r.Particulars || \"\")) &&\n    rateRegex.test(String(r[\"Vch Type\"] || \"\")) &&\n    typeof r[\"Vch No.\"] === \"number\"\n  ) {\n    output.push({\n      \"order date\": currentDate,\n      \"party name\": currentParty,\n      \"product\": r.Date,\n      \"quantity\": r.Particulars,\n      \"price/unit\": r[\"Vch Type\"],\n      \"order value\": r[\"Vch No.\"]\n    });\n  }\n}\n\nreturn output.map(o => ({ json: o }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        448
+      ],
+      "id": "a71af433-0f50-4eb6-87d1-1c69e38a34b1",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI",
+          "mode": "list",
+          "cachedResultName": "Ajay/ Industrial",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1110236158,
+          "mode": "list",
+          "cachedResultName": "new order detail",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit#gid=1110236158"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Party Name": "={{ $json['party name'] }}",
+            " Order Date": "={{ $json['order date'] }}",
+            "Suplied Material ": "={{  $json.product }}",
+            "Supplied Quantity ": "={{ $json.quantity }}",
+            "Cost Per unit ": "={{ $json['price/unit'] }}",
+            "Total Order Value": "={{ $json['order value'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": " Order Date",
+              "displayName": " Order Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Party Name",
+              "displayName": "Party Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Contact Number",
+              "displayName": "Contact Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Suplied Material ",
+              "displayName": "Suplied Material ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Supplied Quantity ",
+              "displayName": "Supplied Quantity ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Cost Per unit ",
+              "displayName": "Cost Per unit ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total Order Value",
+              "displayName": "Total Order Value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1648,
+        304
+      ],
+      "id": "5bbc7be3-cd74-4879-a784-48ce36117031",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2SlEVNbkuAWDQHg",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = items.map(i => i.json);\n\nrows.sort((a, b) => {\n  const da = new Date(a[\"order date\"]);\n  const db = new Date(b[\"order date\"]);\n\n  if (isNaN(da) && isNaN(db)) return 0;\n  if (isNaN(da)) return 1;\n  if (isNaN(db)) return -1;\n\n  return da - db;\n});\n\nreturn rows.map(r => ({ json: r }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        448
+      ],
+      "id": "2341e53d-f408-48cc-9a09-96731f94477b",
+      "name": "Code in JavaScript2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Get a message1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Customer_roaster",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a message1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "181101e2-3ece-4028-933f-0883ac1fed8a",
+  "meta": {
+    "instanceId": "260bc1fa4480af8c6a85bf60fef13f2672568dca8f62a2f1f96f4652544a4ffe"
+  },
+  "id": "RvvkwVFH0W2KRVBW",
+  "tags": [
+    {
+      "updatedAt": "2026-01-30T07:03:40.967Z",
+      "createdAt": "2026-01-30T07:03:40.967Z",
+      "id": "PzAvEAZFzDf5F3dM",
+      "name": "oltimo"
+    }
+  ]
+}

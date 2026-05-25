@@ -1,0 +1,2167 @@
+{
+  "name": "DayBook_Entry_Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "={{ $json.attachments }}",
+        "options": {
+          "headerRow": true,
+          "range": "=",
+          "rawData": false,
+          "readAsString": false
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -1904,
+        -32
+      ],
+      "id": "dea1c192-7530-45e2-a7be-6ede8d34145e",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ae1454f9-fc13-4a3a-823e-d3317faf220c",
+              "leftValue": "= {{ $json.voucher_type }}",
+              "rightValue": "Tax Invoice",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1488,
+        -32
+      ],
+      "id": "c64b3995-a5aa-4d99-88b1-71755ff7ecbe",
+      "name": "segregation node",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI",
+          "mode": "list",
+          "cachedResultName": "Ajay/ Industrial",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 562442612,
+          "mode": "list",
+          "cachedResultName": "Customer Roaster",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit#gid=562442612"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1552,
+        -336
+      ],
+      "id": "9b62bbaa-d85f-49ef-94a7-33a8c4aeb869",
+      "name": "Customer_roaster",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2SlEVNbkuAWDQHg",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2b1ec7bf-790f-419c-9e44-5d3817896d21",
+              "leftValue": "={{$items(\"Customer_roaster\").map(i => i.json[\"PARTY NAME\"])}}\n",
+              "rightValue": "={{ $json.party_name }}",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1056,
+        -144
+      ],
+      "id": "9d87a85d-f40b-4517-8933-10d7a4f100dc",
+      "name": "Exclude_Parties",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "content": "#### This node will help us to comparing ajay's client from daybook\n",
+        "height": 288,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1600,
+        -448
+      ],
+      "id": "99354851-9281-4f9b-82d9-bbe8123abbbd",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## New Entries Logic\n### Fetchng entry from daybook to google sheets for our ajay clients \n\n",
+        "height": 384,
+        "width": 1472
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1232,
+        -416
+      ],
+      "typeVersion": 1,
+      "id": "0c50fed9-bd5c-4d11-abf7-f2e16c1f1db7",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5f4e8570-1bc3-4844-98c5-58e2b625e9e6",
+              "name": "attachments",
+              "value": "={{ $('Gmail Trigger1').item.binary.keys() }}",
+              "type": "array"
+            },
+            {
+              "id": "856a8a32-061c-49c8-835a-98476a188aee",
+              "name": "message id",
+              "value": "={{ $('Gmail Trigger1').item.json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2288,
+        -64
+      ],
+      "id": "7a94437e-d771-4bbd-bf6c-7140eba1cda5",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "message id",
+              "field2": "id"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2048,
+        80
+      ],
+      "id": "ddbce656-ee7a-4b5f-b1ff-e62527933417",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "labelIds": [
+            "Label_2813460934613147213"
+          ]
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -2880,
+        -80
+      ],
+      "id": "5ea224f6-1d2c-47b2-919d-e603780c6eb0",
+      "name": "Gmail Trigger1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2kmiEvCU10hLXikl",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $('Gmail Trigger1').item.json.id}}",
+        "simple": false,
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -2480,
+        96
+      ],
+      "id": "d3d7ab17-3416-4fe9-872c-fa03417aed28",
+      "name": "Get a message1",
+      "webhookId": "5abecc69-8a25-4d35-a052-ef383d910639",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2kmiEvCU10hLXikl",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "attachments ",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -2128,
+        -64
+      ],
+      "id": "51b6e036-24d2-4005-93e0-e70a4ff209cf",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI",
+          "mode": "list",
+          "cachedResultName": "Ajay/ Industrial",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 621370049,
+          "mode": "list",
+          "cachedResultName": "Payment_Status",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit#gid=621370049"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Order Date": "={{ $json.order_date }}",
+            "Party Name": "={{ $json.party_name }}",
+            "Bill Amount": "={{ $json.bill_amount }}",
+            "voucher_number": "={{ $json.voucher_no }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Order Date",
+              "displayName": "Order Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Party Name",
+              "displayName": "Party Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Bill Amount",
+              "displayName": "Bill Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Contact Number",
+              "displayName": "Contact Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Actual Payment Received ",
+              "displayName": "Actual Payment Received ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "payment received",
+              "displayName": "payment received",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Balence Due",
+              "displayName": "Balence Due",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Due Date",
+              "displayName": "Due Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "PDC Collected",
+              "displayName": "PDC Collected",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Cheque Number ",
+              "displayName": "Cheque Number ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Cheque Date",
+              "displayName": "Cheque Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Cheque clearance",
+              "displayName": "Cheque clearance",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Cash / Bank",
+              "displayName": "Cash / Bank",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Payment Date",
+              "displayName": "Payment Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Part-Payment Date",
+              "displayName": "Part-Payment Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Delay in Payment ",
+              "displayName": "Delay in Payment ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Payment Realised in how many days ",
+              "displayName": "Payment Realised in how many days ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Payment Mode",
+              "displayName": "Payment Mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Show_Row",
+              "displayName": "Show_Row",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "voucher_number",
+              "displayName": "voucher_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -656,
+        -272
+      ],
+      "id": "9cc29d2f-735e-41ab-87d2-8b4ecee8cc77",
+      "name": "Append row in sheet",
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2SlEVNbkuAWDQHg",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = [];\n\nfor (const item of items) {\n  const d = item.json;\n\n  const excelDate = d[\"OLTIMO Lubes & Chemicals Pvt. Ltd.\"];\n  const party = d[\"__EMPTY\"];\n  const vchType = d[\"__EMPTY_1\"];\n  const vchNo = d[\"__EMPTY_2\"];\n  const debit = d[\"__EMPTY_3\"] || 0;\n  const credit = d[\"__EMPTY_4\"] || 0;\n\n  // Skip junk rows\n  if (!party || typeof excelDate !== \"number\") continue;\n\n  // We only want Sales (Tax Invoice) and Receipts\n  if (![\"Tax Invoice\", \"Receipt\",\"Credit Note (Sale)\"].includes(vchType)) continue;\n\n  // Convert Excel date\n  const orderDate = new Date((excelDate - 25569) * 86400 * 1000)\n    .toISOString()\n    .split(\"T\")[0];\n\n  output.push({\n    order_date: orderDate,\n    party_name: party,\n    voucher_type: vchType,\n    voucher_no: vchNo || null,\n    bill_amount: vchType === \"Tax Invoice\" ? debit : null,\n    payment_received: vchType === \"Receipt\" ||vchType === \"Credit Note (Sale)\"  ? credit : null,\n    payment_mode: vchType === \"Receipt\" ? d[\"__EMPTY_2\"] : null\n  });\n}\n\n\nreturn output.map(o => ({ json: o }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1744,
+        -32
+      ],
+      "id": "a2420068-9953-4aeb-8817-a39f611f4779",
+      "name": "Normalising file1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9d229ebd-0b70-451a-ad0c-7c1ab76715e6",
+              "leftValue": "={{ $json.voucher_no }}",
+              "rightValue": "Optional",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1280,
+        -128
+      ],
+      "id": "da9a4419-687e-445c-964b-99331413350c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI",
+          "mode": "list",
+          "cachedResultName": "Ajay/ Industrial",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 621370049,
+          "mode": "list",
+          "cachedResultName": "Payment Status",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit#gid=621370049"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $json.row_number }}",
+            "Actual Payment Received ": "={{ $json['actual payment'] }}",
+            "payment received": "={{ $json.payment }}",
+            "Balence Due": "={{ $json.balence }}",
+            "Payment Date": "={{ $json['payment date'] }}",
+            "Part-Payment Date": "={{ $json['part-payment date'] }}",
+            "Payment Mode": "={{ $json['payment mode'] }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Order Date",
+              "displayName": "Order Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Party Name",
+              "displayName": "Party Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Bill Amount",
+              "displayName": "Bill Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Contact Number",
+              "displayName": "Contact Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Due Date",
+              "displayName": "Due Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Actual Payment Received ",
+              "displayName": "Actual Payment Received ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "payment received",
+              "displayName": "payment received",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Balence Due",
+              "displayName": "Balence Due",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PDC Collected",
+              "displayName": "PDC Collected",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Cheque Number ",
+              "displayName": "Cheque Number ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Cheque Date",
+              "displayName": "Cheque Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Cheque clearance",
+              "displayName": "Cheque clearance",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Cash / Bank",
+              "displayName": "Cash / Bank",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Payment Date",
+              "displayName": "Payment Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Part-Payment Date",
+              "displayName": "Part-Payment Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Delay in Payment ",
+              "displayName": "Delay in Payment ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Payment Realised in how many days ",
+              "displayName": "Payment Realised in how many days ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Payment Mode",
+              "displayName": "Payment Mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        48
+      ],
+      "id": "b5ed72c7-4e72-49ef-a822-31a8c8f37cce",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2SlEVNbkuAWDQHg",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all incoming items\nconst items = $input.all();\n\n// Create a Map to track unique records\nconst uniqueMap = new Map();\n\nfor (const item of items) {\n  \n  const row = item.json;\n\n  // Create unique key (change fields if needed)\n  const key = `${row.order_date}_${row.party_name}_${row.payment_received}`;\n\n  // Store only first occurrence\n  if (!uniqueMap.has(key)) {\n    uniqueMap.set(key, item);\n  }\n}\n\n// Return only unique values\nreturn Array.from(uniqueMap.values());"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        32
+      ],
+      "id": "7876aa6c-6a75-4fb0-a30f-71347d876160",
+      "name": "Remove_duplicates"
+    },
+    {
+      "parameters": {
+        "jsCode": "const newPayments = $('Remove_duplicates').all();\nconst paymentStatus = $('Payment_Status').all();\n\nconst normalize = v => String(v || '').trim().toLowerCase();\nconst num = v => isNaN(Number(v)) ? 0 : Number(v);\n\nconst normalizeDate = (value) => {\n  if (!value || value === 'empty') return '';\n  const d = new Date(value);\n  if (isNaN(d)) return '';\n  return d.toISOString().split('T')[0];\n};\n\n/************************************************\n * STEP 1️⃣ BUILD HASH SET FROM Payment_Status\n ************************************************/\n\nconst existingPayments = new Set();\n\nfor (const status of paymentStatus) {\n\n  const party = normalize(\n    status.json[\"Party Name\"] ??\n    status.json[\"party name\"]\n  );\n\n  const amount = num(\n    status.json[\"actual payment\"] ??\n    status.json[\"Actual Payment\"] ??\n    0\n  );\n\n  const date = normalizeDate(\n    status.json[\"Payment Date\"] && status.json[\"Payment Date\"] !== 'empty'\n      ? status.json[\"Payment Date\"]\n      : status.json[\"Part-Payment Date\"]\n  );\n\n  if (!party || !amount || !date) continue;\n\n  const key = `${party}|${date}|${amount}`;\n  existingPayments.add(key);\n}\n\n/************************************************\n * STEP 2️⃣ FILTER NEW PAYMENTS\n ************************************************/\n\nconst output = [];\n\nfor (const payment of newPayments) {\n\n  const party = normalize(payment.json.party_name);\n  const amount = num(payment.json.payment_received);\n  const date = normalizeDate(payment.json.order_date);\n\n  if (!party || !amount || !date) {\n    output.push(payment); // let settlement handle validation\n    continue;\n  }\n\n  const key = `${party}|${date}|${amount}`;\n\n  if (!existingPayments.has(key)) {\n    output.push(payment);\n  }\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        32
+      ],
+      "id": "49870a36-e2a8-47eb-b1d0-45ca8c264c09",
+      "name": "Not_Existing_payments"
+    },
+    {
+      "parameters": {
+        "jsCode": "/************************************************\n * READ INPUTS\n ************************************************/\nconst bills = $items(\"Payment_Status\").map(i => i.json);\nconst payments = $items(\"Not_Existing_payments\").map(i => i.json);\n\n/************************************************\n * HELPERS\n ************************************************/\nconst normalize = v => String(v || \"\").trim().toLowerCase();\nconst num = v => isNaN(Number(v)) ? 0 : Number(v);\n\nconst parseDate = v => {\n  if (!v) return null;\n  const d = new Date(v);\n  return isNaN(d) ? null : d;\n};\n\nconst iso = d => d ? d.toISOString().split(\"T\")[0] : \"\";\n\n/************************************************\n * STEP 1️⃣ NORMALIZE BILLS (SAFE COLUMN MATCH)\n ************************************************/\nconst billsByParty = {};\n\nfor (const b of bills) {\n\n  const partyRaw =\n    b[\"Party Name\"] ??\n    b[\"party name\"] ??\n    \"\";\n\n  const party = normalize(partyRaw);\n\n  const row = b.row_number;\n\n  const billDate = parseDate(\n    b[\"Order Date\"] ??\n    b[\"order date\"]\n  );\n\n  const balanceRaw = num(\n    b[\"balence\"] ??\n    b[\"Balence\"] ??\n    b[\"Balence Due\"] ??\n    0\n  );\n\n  const paid = num(\n    b[\"payment\"] ??\n    b[\"Payment\"] ??\n    0\n  );\n\n  if (!party || !row || !billDate) continue;\n  if (balanceRaw <= 0) continue;\n\n  billsByParty[party] ??= [];\n  billsByParty[party].push({\n    row_number: row,\n    party_name: partyRaw,\n    bill_date: billDate,\n    balance_due: balanceRaw,\n    paid_so_far: paid,\n  });\n}\n\nfor (const p in billsByParty) {\n  billsByParty[p].sort((a, b) => a.bill_date - b.bill_date);\n}\n\n/************************************************\n * STEP 2️⃣ NORMALIZE PAYMENTS\n ************************************************/\nconst paymentsByParty = {};\n\nfor (const p of payments) {\n\n  const party = normalize(p.party_name);\n  const paymentDate = parseDate(p.order_date);\n  const amount = num(p.payment_received);\n\n  if (!party || !paymentDate || amount <= 0) continue;\n\n  paymentsByParty[party] ??= [];\n  paymentsByParty[party].push({\n    payment_date: paymentDate,\n    amount,\n    mode: p.payment_mode || \"\",\n  });\n}\n\nfor (const p in paymentsByParty) {\n  paymentsByParty[p].sort((a, b) => a.payment_date - b.payment_date);\n}\n\n/************************************************\n * STEP 3️⃣ FIFO SETTLEMENT\n ************************************************/\nconst updates = [];\n\nfor (const party of Object.keys(billsByParty)) {\n\n  if (!paymentsByParty[party]) continue;\n\n  const partyBills = billsByParty[party];\n  const partyPayments = paymentsByParty[party];\n\n  let billIdx = 0;\n\n  for (const payment of partyPayments) {\n\n    let remaining = payment.amount;\n\n    while (remaining > 0 && billIdx < partyBills.length) {\n\n      const bill = partyBills[billIdx];\n\n      // Prevent payment before bill date\n      if (payment.payment_date < bill.bill_date) {\n        break;\n      }\n\n      let settle = Math.min(remaining, bill.balance_due);\n      let newBalance = bill.balance_due - settle;\n\n      // auto close < 10\n      if (newBalance < 10) {\n        settle += newBalance;\n        newBalance = 0;\n      }\n\n      updates.push({\n        row_number: bill.row_number,\n        \"party name\": bill.party_name,\n        \"Order Date\": iso(bill.bill_date),\n        \"payment\": bill.paid_so_far + settle,\n        \"balence\": newBalance,\n        \"payment mode\": payment.mode,\n        \"payment date\": newBalance === 0 ? iso(payment.payment_date) : \"\",\n        \"part-payment date\": newBalance > 0 ? iso(payment.payment_date) : \"\",\n        \"actual payment\": payment.amount\n      });\n\n      bill.paid_so_far += settle;\n      bill.balance_due = newBalance;\n      remaining -= settle;\n\n      if (bill.balance_due === 0) {\n        billIdx++;\n      } else {\n        break;\n      }\n    }\n  }\n}\n\n/************************************************\n * FINAL RETURN\n ************************************************/\nif (updates.length === 0) {\n  return [{ json: { status: \"NO_UPDATES\" } }];\n}\n\nreturn updates.map(u => ({ json: u }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        32
+      ],
+      "id": "435db9b4-c110-4dff-812e-6eaf291851f0",
+      "name": "Logic_node"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2b1ec7bf-790f-419c-9e44-5d3817896d21",
+              "leftValue": "={{$items(\"Customer_roaster\").map(i => i.json[\"PARTY NAME\"])}}\n",
+              "rightValue": "={{ $('segregation node').item.json.party_name }}",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -480,
+        64
+      ],
+      "id": "48e96255-0f20-4273-8db8-033fc4163e9b",
+      "name": "Exclude_Parties1",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI",
+          "mode": "list",
+          "cachedResultName": "Ajay/ Industrial",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 621370049,
+          "mode": "list",
+          "cachedResultName": "Ajay Payment_Status",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit#gid=621370049"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2464,
+        -496
+      ],
+      "id": "049defde-e6d5-479d-938b-4d571a6a0345",
+      "name": "Payment_Status",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2SlEVNbkuAWDQHg",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "data.analytics@oltimo.co.in",
+        "subject": "Update balence due",
+        "message": "Please update balence due and check items ",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {
+          "appendAttribution": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -1264,
+        -16
+      ],
+      "id": "04a01a81-86f0-47f2-ab12-4ce4e21b9067",
+      "name": "Send a message",
+      "webhookId": "81bd448a-b0bd-4b12-8924-32afb02f6b76",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2kmiEvCU10hLXikl",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "02cb6579-b954-4bb0-98ff-c67ed569e30a",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "NO_UPDATES",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        320,
+        32
+      ],
+      "id": "77a1e4db-897c-4cca-a2ea-76af0c8893ce",
+      "name": "If1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        512,
+        -80
+      ],
+      "id": "36ff460c-c2f4-430a-bdb1-30c631a92d15",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "02225b70-648e-4f45-a551-4468b62941e7",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1056,
+        -16
+      ],
+      "id": "5c44177a-9523-4c68-8705-8eea5cbd5d66",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch",
+        "numberInputs": 3,
+        "useDataOfInput": 2
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -720,
+        96
+      ],
+      "id": "3d12e149-b638-43aa-9210-30706857f0b7",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const newReceipts = $input.all();\nconst ledgerItems = $items(\"Payment_Status1\");\n\n\nconst existingKeys = new Set(\n  ledgerItems.map(i => String(i.json.voucher_number || \"\").trim())\n);\n\nconst seenInBatch = new Set();\nconst finalOutput = [];\n\nfor (const item of newReceipts) {\n  // 2. Extract the incoming field 'voucher_no' from your input node\n  const key = String(item.json.voucher_no || \"\").trim();\n  \n  // 3. Skip if the key is empty\n  if (!key) continue;\n\n  // 4. Skip if already exists in the Google Sheet (ledger)\n  if (existingKeys.has(key)) {\n    continue;\n  }\n\n  // 5. Skip if it's a duplicate within the current incoming batch\n  if (seenInBatch.has(key)) {\n    continue;\n  }\n\n  // If it passes all checks, add it to the final output\n  seenInBatch.add(key);\n  finalOutput.push(item);\n}\n\n/** * If finalOutput has items, they are sent to the next node.\n * If finalOutput is empty, it returns [], which stops the \n * \"Append row in sheet2\" node from executing.\n */\nreturn finalOutput;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -848,
+        -128
+      ],
+      "id": "573f3827-1900-4a6f-9fe0-1258f418655d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI",
+          "mode": "list",
+          "cachedResultName": "Ajay/ Industrial",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1965065345,
+          "mode": "list",
+          "cachedResultName": "Oltimo",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit#gid=1965065345"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Order Date": "={{ $json.order_date }}",
+            "Party Name": "={{ $json.party_name }}",
+            "Bill Amount": "={{ $json.bill_amount }}",
+            "voucher_number": "={{ $json.voucher_no }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Order Date",
+              "displayName": "Order Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Party Name",
+              "displayName": "Party Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Bill Amount",
+              "displayName": "Bill Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Contact Number",
+              "displayName": "Contact Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Actual Payment Received ",
+              "displayName": "Actual Payment Received ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "payment received",
+              "displayName": "payment received",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Balence Due",
+              "displayName": "Balence Due",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Due Date",
+              "displayName": "Due Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "PDC Collected",
+              "displayName": "PDC Collected",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Cheque Number ",
+              "displayName": "Cheque Number ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Cheque Date",
+              "displayName": "Cheque Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Cheque clearance",
+              "displayName": "Cheque clearance",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Cash / Bank",
+              "displayName": "Cash / Bank",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Payment Date",
+              "displayName": "Payment Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Part-Payment Date",
+              "displayName": "Part-Payment Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Delay in Payment ",
+              "displayName": "Delay in Payment ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Payment Realised in how many days ",
+              "displayName": "Payment Realised in how many days ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Payment Mode",
+              "displayName": "Payment Mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "voucher_number",
+              "displayName": "voucher_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -640,
+        -128
+      ],
+      "id": "982984ab-9e41-497f-b13c-4dea0ad7ba21",
+      "name": "Append row in sheet2",
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2SlEVNbkuAWDQHg",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI",
+          "mode": "list",
+          "cachedResultName": "Ajay/ Industrial",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 621370049,
+          "mode": "list",
+          "cachedResultName": "Payment Status",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit#gid=621370049"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $json.row_number }}",
+            "Actual Payment Received ": "={{ $json['actual payment'] }}",
+            "payment received": "={{ $json.payment }}",
+            "Balence Due": "={{ $json.balence }}",
+            "Payment Date": "={{ $json['payment date'] }}",
+            "Part-Payment Date": "={{ $json['part-payment date'] }}",
+            "Payment Mode": "={{ $json['payment mode'] }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Order Date",
+              "displayName": "Order Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Party Name",
+              "displayName": "Party Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Bill Amount",
+              "displayName": "Bill Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Contact Number",
+              "displayName": "Contact Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Due Date",
+              "displayName": "Due Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Actual Payment Received ",
+              "displayName": "Actual Payment Received ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "payment received",
+              "displayName": "payment received",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Balence Due",
+              "displayName": "Balence Due",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PDC Collected",
+              "displayName": "PDC Collected",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Cheque Number ",
+              "displayName": "Cheque Number ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Cheque Date",
+              "displayName": "Cheque Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Cheque clearance",
+              "displayName": "Cheque clearance",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Cash / Bank",
+              "displayName": "Cash / Bank",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Payment Date",
+              "displayName": "Payment Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Part-Payment Date",
+              "displayName": "Part-Payment Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Delay in Payment ",
+              "displayName": "Delay in Payment ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Payment Realised in how many days ",
+              "displayName": "Payment Realised in how many days ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Payment Mode",
+              "displayName": "Payment Mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        576,
+        272
+      ],
+      "id": "eb783294-9310-4cf4-a108-033a63be0316",
+      "name": "Update row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2SlEVNbkuAWDQHg",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all incoming items\nconst items = $input.all();\n\n// Create a Map to track unique records\nconst uniqueMap = new Map();\n\nfor (const item of items) {\n  \n  const row = item.json;\n\n  // Create unique key (change fields if needed)\n  const key = `${row.order_date}_${row.party_name}_${row.payment_received}`;\n\n  // Store only first occurrence\n  if (!uniqueMap.has(key)) {\n    uniqueMap.set(key, item);\n  }\n}\n\n// Return only unique values\nreturn Array.from(uniqueMap.values());"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        176
+      ],
+      "id": "cea13481-a669-44c6-88e5-34d711fa9c36",
+      "name": "Remove_duplicates1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const newPayments = $('Remove_duplicates1').all();\nconst paymentStatus = $('Payment_Status').all();\n\nconst normalize = v => String(v || '').trim().toLowerCase();\nconst num = v => isNaN(Number(v)) ? 0 : Number(v);\n\nconst normalizeDate = (value) => {\n  if (!value || value === 'empty') return '';\n  const d = new Date(value);\n  if (isNaN(d)) return '';\n  return d.toISOString().split('T')[0];\n};\n\n/************************************************\n * STEP 1️⃣ BUILD HASH SET FROM Payment_Status\n ************************************************/\n\nconst existingPayments = new Set();\n\nfor (const status of paymentStatus) {\n\n  const party = normalize(\n    status.json[\"Party Name\"] ??\n    status.json[\"party name\"]\n  );\n\n  const amount = num(\n    status.json[\"actual payment\"] ??\n    status.json[\"Actual Payment\"] ??\n    0\n  );\n\n  const date = normalizeDate(\n    status.json[\"Payment Date\"] && status.json[\"Payment Date\"] !== 'empty'\n      ? status.json[\"Payment Date\"]\n      : status.json[\"Part-Payment Date\"]\n  );\n\n  if (!party || !amount || !date) continue;\n\n  const key = `${party}|${date}|${amount}`;\n  existingPayments.add(key);\n}\n\n/************************************************\n * STEP 2️⃣ FILTER NEW PAYMENTS\n ************************************************/\n\nconst output = [];\n\nfor (const payment of newPayments) {\n\n  const party = normalize(payment.json.party_name);\n  const amount = num(payment.json.payment_received);\n  const date = normalizeDate(payment.json.order_date);\n\n  if (!party || !amount || !date) {\n    output.push(payment); // let settlement handle validation\n    continue;\n  }\n\n  const key = `${party}|${date}|${amount}`;\n\n  if (!existingPayments.has(key)) {\n    output.push(payment);\n  }\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        160
+      ],
+      "id": "15d224e6-4b6f-41ef-abc2-2b8323b5f8eb",
+      "name": "Not_Existing_payments1"
+    },
+    {
+      "parameters": {
+        "jsCode": "/************************************************\n * READ INPUTS\n ************************************************/\nconst bills = $items(\"Payment_Status\").map(i => i.json);\nconst payments = $items(\"Not_Existing_payments1\").map(i => i.json);\n\n/************************************************\n * HELPERS\n ************************************************/\nconst normalize = v => String(v || \"\").trim().toLowerCase();\nconst num = v => isNaN(Number(v)) ? 0 : Number(v);\n\nconst parseDate = v => {\n  if (!v) return null;\n  const d = new Date(v);\n  return isNaN(d) ? null : d;\n};\n\nconst iso = d => d ? d.toISOString().split(\"T\")[0] : \"\";\n\n/************************************************\n * STEP 1️⃣ NORMALIZE BILLS (SAFE COLUMN MATCH)\n ************************************************/\nconst billsByParty = {};\n\nfor (const b of bills) {\n\n  const partyRaw =\n    b[\"Party Name\"] ??\n    b[\"party name\"] ??\n    \"\";\n\n  const party = normalize(partyRaw);\n\n  const row = b.row_number;\n\n  const billDate = parseDate(\n    b[\"Order Date\"] ??\n    b[\"order date\"]\n  );\n\n  const balanceRaw = num(\n    b[\"balence\"] ??\n    b[\"Balence\"] ??\n    b[\"Balence Due\"] ??\n    0\n  );\n\n  const paid = num(\n    b[\"payment\"] ??\n    b[\"Payment\"] ??\n    0\n  );\n\n  if (!party || !row || !billDate) continue;\n  if (balanceRaw <= 0) continue;\n\n  billsByParty[party] ??= [];\n  billsByParty[party].push({\n    row_number: row,\n    party_name: partyRaw,\n    bill_date: billDate,\n    balance_due: balanceRaw,\n    paid_so_far: paid,\n  });\n}\n\nfor (const p in billsByParty) {\n  billsByParty[p].sort((a, b) => a.bill_date - b.bill_date);\n}\n\n/************************************************\n * STEP 2️⃣ NORMALIZE PAYMENTS\n ************************************************/\nconst paymentsByParty = {};\n\nfor (const p of payments) {\n\n  const party = normalize(p.party_name);\n  const paymentDate = parseDate(p.order_date);\n  const amount = num(p.payment_received);\n\n  if (!party || !paymentDate || amount <= 0) continue;\n\n  paymentsByParty[party] ??= [];\n  paymentsByParty[party].push({\n    payment_date: paymentDate,\n    amount,\n    mode: p.payment_mode || \"\",\n  });\n}\n\nfor (const p in paymentsByParty) {\n  paymentsByParty[p].sort((a, b) => a.payment_date - b.payment_date);\n}\n\n/************************************************\n * STEP 3️⃣ FIFO SETTLEMENT\n ************************************************/\nconst updates = [];\n\nfor (const party of Object.keys(billsByParty)) {\n\n  if (!paymentsByParty[party]) continue;\n\n  const partyBills = billsByParty[party];\n  const partyPayments = paymentsByParty[party];\n\n  let billIdx = 0;\n\n  for (const payment of partyPayments) {\n\n    let remaining = payment.amount;\n\n    while (remaining > 0 && billIdx < partyBills.length) {\n\n      const bill = partyBills[billIdx];\n\n      // Prevent payment before bill date\n      if (payment.payment_date < bill.bill_date) {\n        break;\n      }\n\n      let settle = Math.min(remaining, bill.balance_due);\n      let newBalance = bill.balance_due - settle;\n\n      // auto close < 10\n      if (newBalance < 10) {\n        settle += newBalance;\n        newBalance = 0;\n      }\n\n      updates.push({\n        row_number: bill.row_number,\n        \"party name\": bill.party_name,\n        \"Order Date\": iso(bill.bill_date),\n        \"payment\": bill.paid_so_far + settle,\n        \"balence\": newBalance,\n        \"payment mode\": payment.mode,\n        \"payment date\": newBalance === 0 ? iso(payment.payment_date) : \"\",\n        \"part-payment date\": newBalance > 0 ? iso(payment.payment_date) : \"\",\n        \"actual payment\": payment.amount\n      });\n\n      bill.paid_so_far += settle;\n      bill.balance_due = newBalance;\n      remaining -= settle;\n\n      if (bill.balance_due === 0) {\n        billIdx++;\n      } else {\n        break;\n      }\n    }\n  }\n}\n\n/************************************************\n * FINAL RETURN\n ************************************************/\nif (updates.length === 0) {\n  return [{ json: { status: \"NO_UPDATES\" } }];\n}\n\nreturn updates.map(u => ({ json: u }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        160
+      ],
+      "id": "087544bf-7d51-4085-93a8-4eaca3d03218",
+      "name": "Logic_node1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "02cb6579-b954-4bb0-98ff-c67ed569e30a",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "NO_UPDATES",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        320,
+        160
+      ],
+      "id": "0cc90335-db54-4f36-97b0-a813ca25f375",
+      "name": "If3"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        480,
+        144
+      ],
+      "id": "422e6dce-6a18-4a99-b94a-67efd3380cec",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "amount": 40
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -400,
+        -272
+      ],
+      "id": "0c833dd7-a54b-4216-8329-5efa0f357097",
+      "name": "Wait",
+      "webhookId": "f423fa81-9713-408b-977c-560148fc573a"
+    },
+    {
+      "parameters": {
+        "amount": 100
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        912,
+        48
+      ],
+      "id": "7e5947f4-64cf-4002-ac8d-0a582bd66cda",
+      "name": "Wait2",
+      "webhookId": "f423fa81-9713-408b-977c-560148fc573a"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI",
+          "mode": "list",
+          "cachedResultName": "Ajay/ Industrial",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1965065345,
+          "mode": "list",
+          "cachedResultName": "Oltimo",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OaQOb8yycBAtQRUnBD8PsgtqOpH-HoR_Tt1PZQd0xKI/edit#gid=1965065345"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2416,
+        -336
+      ],
+      "id": "4c03b3a3-5795-417a-b82d-78d641c4199d",
+      "name": "Payment_Status1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2SlEVNbkuAWDQHg",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -2256,
+        -496
+      ],
+      "id": "05adaf7f-c6e6-480c-a9d7-583e4fcd8f62",
+      "name": "Wait3",
+      "webhookId": "569e1d98-76bd-47b2-af28-7e5f7facffcd"
+    },
+    {
+      "parameters": {
+        "jsCode": "const newReceipts = $input.all();\nconst ledgerItems = $items(\"Payment_Status\");\n\n\nconst existingKeys = new Set(\n  ledgerItems.map(i => String(i.json.voucher_number || \"\").trim())\n);\n\nconst seenInBatch = new Set();\nconst finalOutput = [];\n\nfor (const item of newReceipts) {\n  // 2. Extract the incoming field 'voucher_no' from your input node\n  const key = String(item.json.voucher_no || \"\").trim();\n  \n  // 3. Skip if the key is empty\n  if (!key) continue;\n\n  // 4. Skip if already exists in the Google Sheet (ledger)\n  if (existingKeys.has(key)) {\n    continue;\n  }\n\n  // 5. Skip if it's a duplicate within the current incoming batch\n  if (seenInBatch.has(key)) {\n    continue;\n  }\n\n  // If it passes all checks, add it to the final output\n  seenInBatch.add(key);\n  finalOutput.push(item);\n}\n\n/** * If finalOutput has items, they are sent to the next node.\n * If finalOutput is empty, it returns [], which stops the \n * \"Append row in sheet2\" node from executing.\n */\nreturn finalOutput;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -848,
+        -272
+      ],
+      "id": "8b999afc-e53c-41eb-a9a1-f775e9d718d1",
+      "name": "Logic"
+    }
+  ],
+  "pinData": {
+    "Gmail Trigger1": [
+      {
+        "json": {
+          "id": "19d7203a123d3558",
+          "threadId": "19d7203a123d3558",
+          "labelIds": [
+            "Label_2813460934613147213",
+            "CATEGORY_PERSONAL",
+            "INBOX"
+          ],
+          "sizeEstimate": 21631,
+          "headers": {
+            "delivered-to": "Delivered-To: shivamyadav@oltimo.co.in",
+            "received": "Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])\r\n        by mx.google.com with SMTPS id d75a77b69052e-50dc177cf24sor13348961cf.6.2026.04.09.04.32.13\r\n        for <SHIVAMYADAV@oltimo.co.in>\r\n        (Google Transport Security);\r\n        Thu, 09 Apr 2026 04:32:13 -0700 (PDT)",
+            "x-received": "X-Received: by 2002:a05:622a:243:b0:4ee:1bdb:a547 with SMTP id\r\n d75a77b69052e-50dc1a1af08mr40019271cf.14.1775734332249; Thu, 09 Apr 2026\r\n 04:32:12 -0700 (PDT)",
+            "arc-seal": "ARC-Seal: i=1; a=rsa-sha256; t=1775734332; cv=none;\r\n        d=google.com; s=arc-20240605;\r\n        b=aWz2FTAdAQO5bRm5rclpGv0irGoKAB6nsdjICk2UZ4AQNUKDVKAVwiNMEPwB1sGYp7\r\n         txAEutHDMcgE0DdrHWg7DyX4o+E8gAFERx7kAqhvM1dktQMdoOFtJfjYk3WnRsv+2sav\r\n         SCukJnGKJ9HNZJhduLkBbOgMdpK76H+/NRPY1/+R2iBgTtPijQg7GXwLLPqJgkZT/o7s\r\n         yB+Eajt2rnW/IKjLlWfh4kcMgpQfpyk7rcsBXoVegfaJtk5LzD8YXNyigOUZ30l+w0Bb\r\n         YAH9tPJH8fBOiHGC//arbxeSZdx3wvVzyDy57k9SvnXfNV+9kASBi2qRDSLx2GksrEYe\r\n         N5NQ==",
+            "arc-message-signature": "ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;\r\n        h=to:subject:message-id:date:from:mime-version:dkim-signature;\r\n        bh=8XCe6GGKMUOGvWAoPFujIDuKxNSkR/+lJnQ/f7ZaQOM=;\r\n        fh=B8SKcJ7PlIHfPlBnyCr2xkU6pSZ/DBNWzom9mTpehbs=;\r\n        b=No31Em4RaRdTi9fVBdxSDqijHMSduGRBG4Ve1iRlk9bd0RS9vQ+CLj77o4B/qWbaoS\r\n         5sqvTXIvPhhM1ehONpQTD+i/Ylx0UUKw/AJ5QnLiCsLVvzs0he1BNPRjk8BD1a/gES5/\r\n         b5RbQLcvdGPruLuSF3axju+xV7ZgX630axx7nhCpWTORMMwmfIJH7OcLr1xfMEiuoQNl\r\n         2HqUF8q0DuBpZausy5Aq/JWjuOfvhGeFGD6UrdaWpwO+lPyAh9Fzn1T0b4yUBQdKGM6j\r\n         xUdGg1F3MDX1Sn0mARIGzTtltrIFcm5iod57Btghv3s/DIf9ZDFyYCzT6uQmZrMtVICz\r\n         LUCA==;\r\n        darn=oltimo.co.in",
+            "arc-authentication-results": "ARC-Authentication-Results: i=1; mx.google.com; arc=none",
+            "return-path": "Return-Path: <himanshu@oltimo.co.in>",
+            "received-spf": "Received-SPF: pass (google.com: domain of himanshu@oltimo.co.in designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;",
+            "authentication-results": "Authentication-Results: mx.google.com;\r\n       dkim=pass header.i=@oltimo-co-in.20251104.gappssmtp.com header.s=20251104 header.b=\"B/4YewL5\";\r\n       arc=pass (i=1);\r\n       spf=pass (google.com: domain of himanshu@oltimo.co.in designates 209.85.220.41 as permitted sender) smtp.mailfrom=himanshu@oltimo.co.in;\r\n       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=oltimo.co.in;\r\n       dara=neutral header.i=@oltimo.co.in",
+            "dkim-signature": "DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;\r\n        d=oltimo-co-in.20251104.gappssmtp.com; s=20251104; t=1775734332; x=1776339132; darn=oltimo.co.in;\r\n        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject\r\n         :date:message-id:reply-to;\r\n        bh=8XCe6GGKMUOGvWAoPFujIDuKxNSkR/+lJnQ/f7ZaQOM=;\r\n        b=B/4YewL5MnmoZL1lxkMp9jENOE6dU6L2X7ORdKTFGHzaFG1VPf3RJ4V91JuY2gRNyC\r\n         Uz77JtsJgg60fFV1tioBYLMjUH9V2MefxZ9bgGVEkJ0AB4SBylzI7xSP8ksinoif+hag\r\n         qHHNno9ivXyCRSUX8BaxDonTHqG9yTePoSEcxtkQiV872yXylxoX3IPY2vijJ8dkianT\r\n         reKqX1AojupwME8SXTf18J5o+mjb0EIXb45lLl9sBKyx366qgyPZsmVoEqXQ277TQjws\r\n         LFxGYmMNDklYzmujmMEPLjNv1p303yP40Dx7f4ceqgGIZmsf3VXY0oGgMb2AS7p2wm/A\r\n         BKGQ==",
+            "x-google-dkim-signature": "X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;\r\n        d=1e100.net; s=20251104; t=1775734332; x=1776339132;\r\n        h=to:subject:message-id:date:from:mime-version:x-gm-gg\r\n         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;\r\n        bh=8XCe6GGKMUOGvWAoPFujIDuKxNSkR/+lJnQ/f7ZaQOM=;\r\n        b=oep5NC4bJ7q9cSxKj60L5knBpoGctte0xhFY9p2iO7axw0fNbS6k9u/p0IheE0yKbg\r\n         bc553qNE1+02PnpIBS4u7mZQ3yOKOIUf/AMaAct0yChgA5H/DkAm4SoxGzZBgpiidSfH\r\n         /VzSYT8jsiuV0e3n2QYBa4zhdcGM0W+rRHTDpBEAdI3scV2VfdU5qlhuYWEpEBeWvAoe\r\n         KCRXempcg9j52KxiVMxAqWrLUqoKenwzBLWuQS6KyVZT4ew5t8vLpSdVxYwCNut8nK+4\r\n         Blk9zAwk2re5n0R+YNQTIfarZLN2UNYxeXBcCMY2lJZFyLHS42twmuI0er5DRPhPntss\r\n         E2dg==",
+            "x-gm-message-state": "X-Gm-Message-State: AOJu0Yy/ijAT+LpdXCv2lSxUgcDbgfaIXbBvWsYh29FzNg/ZkTL/WAfK\r\n\tWzuVO3sOcCL2RAOVUfRDVvpy2PvsI0ZEnQb86ZTGOstAFei4ch5ijJighbGz4qC6h/LH7mCXraG\r\n\tn1eOWukdnB2Q4RDTdOp5hn6Bbhkj4bJyiJLJHUAzVYKsrAmlvbKXmrwo=",
+            "x-gm-gg": "X-Gm-Gg: AeBDiesC4esB8jz2GdI2so6cCUZbIpaxbFvciq/tgBjb90EjPGjgrNpkmurJPCZy0fX\r\n\ttC5Q1QjGYgwTOppMpQo8q0X4Kg4zdtKZxiVb5sM/+DKsBks+snEQYMm1Fg6WABC49TD+p7C49i1\r\n\tqNQWCqb6ZuCxCuNFUHjria71VBUFS+zIt7NMI0OFBaKM+Z6L6zcJjAI9ycjTwphTf6FCKButeLx\r\n\t0X9/5FLkXu9cXtYvA+o0ZImOQ1Px4+sHv3MnDejk6nwTsNKuL8A2l4V3RLjNciQT19FJu3Jjwyx\r\n\tFVv9/JlaoCJ+auiY9B9WlM2O5XnZECJznavbSyyZIw==",
+            "mime-version": "MIME-Version: 1.0",
+            "from": "From: himanshu Kashyap <himanshu@oltimo.co.in>",
+            "date": "Date: Thu, 9 Apr 2026 17:01:52 +0530",
+            "x-gm-features": "X-Gm-Features: AQROBzDd10dZxuMoxQwq29_uIXCv49WrzrUAu5QGS6aDtNhCPUnkSUCkRMrGnu4",
+            "message-id": "Message-ID: <CAKqYc_6o++4Zp=K9791zNhGfptZP2Lf1HjR1Noenn-9jBZoeZg@mail.gmail.com>",
+            "subject": "Subject: daybook without narratin oltimo",
+            "to": "To: Shivam Yadav <SHIVAMYADAV@oltimo.co.in>",
+            "content-type": "Content-Type: multipart/mixed; boundary=\"00000000000017174f064f055e0e\""
+          },
+          "html": "<div dir=\"ltr\"><br></div>\n",
+          "text": "\n",
+          "textAsHtml": "<p></p>",
+          "subject": "daybook without narratin oltimo",
+          "date": "2026-04-09T11:31:52.000Z",
+          "to": {
+            "value": [
+              {
+                "address": "SHIVAMYADAV@oltimo.co.in",
+                "name": "Shivam Yadav"
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><span class=\"mp_address_name\">Shivam Yadav</span> &lt;<a href=\"mailto:SHIVAMYADAV@oltimo.co.in\" class=\"mp_address_email\">SHIVAMYADAV@oltimo.co.in</a>&gt;</span>",
+            "text": "\"Shivam Yadav\" <SHIVAMYADAV@oltimo.co.in>"
+          },
+          "from": {
+            "value": [
+              {
+                "address": "himanshu@oltimo.co.in",
+                "name": "himanshu Kashyap"
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><span class=\"mp_address_name\">himanshu Kashyap</span> &lt;<a href=\"mailto:himanshu@oltimo.co.in\" class=\"mp_address_email\">himanshu@oltimo.co.in</a>&gt;</span>",
+            "text": "\"himanshu Kashyap\" <himanshu@oltimo.co.in>"
+          },
+          "messageId": "<CAKqYc_6o++4Zp=K9791zNhGfptZP2Lf1HjR1Noenn-9jBZoeZg@mail.gmail.com>"
+        },
+        "binary": {
+          "attachment_0": {
+            "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "fileExtension": "xlsx",
+            "data": "filesystem-v2",
+            "fileName": "daybook without narration oltimo 8 apr.xlsx",
+            "id": "filesystem-v2:workflows/6mURNtmwt_TgfmBXYlExc/executions/temp/binary_data/85ba9f6f-b7f8-41aa-b885-a2e928da9bf9",
+            "fileSize": "10.3 kB",
+            "bytes": 10294
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Normalising file1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "segregation node": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Exclude_Parties": {
+      "main": [
+        [
+          {
+            "node": "Logic",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Get a message1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Customer_roaster",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Payment_Status",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Payment_Status1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a message1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalising file1": {
+      "main": [
+        [
+          {
+            "node": "segregation node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Exclude_Parties",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove_duplicates": {
+      "main": [
+        [
+          {
+            "node": "Not_Existing_payments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Not_Existing_payments": {
+      "main": [
+        [
+          {
+            "node": "Logic_node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Logic_node": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exclude_Parties1": {
+      "main": [
+        [
+          {
+            "node": "Remove_duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Remove_duplicates1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Exclude_Parties1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove_duplicates1": {
+      "main": [
+        [
+          {
+            "node": "Not_Existing_payments1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Not_Existing_payments1": {
+      "main": [
+        [
+          {
+            "node": "Logic_node1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Logic_node1": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet2": {
+      "main": [
+        []
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment_Status": {
+      "main": [
+        []
+      ]
+    },
+    "Logic": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment_Status1": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "063065e1-1410-4728-a925-487dc5292ad3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "260bc1fa4480af8c6a85bf60fef13f2672568dca8f62a2f1f96f4652544a4ffe"
+  },
+  "id": "6mURNtmwt_TgfmBXYlExc",
+  "tags": [
+    {
+      "updatedAt": "2026-01-30T07:03:40.967Z",
+      "createdAt": "2026-01-30T07:03:40.967Z",
+      "id": "PzAvEAZFzDf5F3dM",
+      "name": "oltimo"
+    }
+  ]
+}

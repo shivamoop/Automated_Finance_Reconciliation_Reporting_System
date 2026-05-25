@@ -1,0 +1,526 @@
+{
+  "name": "BS_Order_received",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "={{ $json.attachments }}",
+        "options": {
+          "headerRow": true,
+          "range": "=",
+          "rawData": false,
+          "readAsString": false
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -1904,
+        -32
+      ],
+      "id": "32cf3cf4-b63d-42c1-bd56-6bb4d2c4ef96",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ae1454f9-fc13-4a3a-823e-d3317faf220c",
+              "leftValue": "= {{ $json.voucher_type }}",
+              "rightValue": "Sales",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1488,
+        -32
+      ],
+      "id": "3c067fbd-962b-4307-abb5-0e20ab61dd65",
+      "name": "segregation node",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "content": "## New Entries Logic\n### Fetchng entry from daybook to google sheets for our ajay clients \n\n",
+        "height": 384,
+        "width": 1472
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1232,
+        -416
+      ],
+      "typeVersion": 1,
+      "id": "d3d028fd-2887-4a51-8d78-232b2a436c5d",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5f4e8570-1bc3-4844-98c5-58e2b625e9e6",
+              "name": "attachments",
+              "value": "={{ $('Gmail Trigger1').item.binary.keys() }}",
+              "type": "array"
+            },
+            {
+              "id": "856a8a32-061c-49c8-835a-98476a188aee",
+              "name": "message id",
+              "value": "={{ $('Gmail Trigger1').item.json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2288,
+        -64
+      ],
+      "id": "688825da-458d-45a5-8ad8-bb4bad280827",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "message id",
+              "field2": "id"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2048,
+        80
+      ],
+      "id": "b22ad52b-ca91-49a4-9f70-afe955867c7c",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const newReceipts = $input.all();\nconst ledgerItems = $items(\"Payment_Status\");\n\n\nconst existingKeys = new Set(\n  ledgerItems.map(i => String(i.json.voucher_no || \"\").trim())\n);\n\nconst seenInBatch = new Set();\nconst finalOutput = [];\n\nfor (const item of newReceipts) {\n  // 2. Extract the incoming field 'voucher_no' from your input node\n  const key = String(item.json.voucher_no || \"\").trim();\n  \n  // 3. Skip if the key is empty\n  if (!key) continue;\n\n  // 4. Skip if already exists in the Google Sheet (ledger)\n  if (existingKeys.has(key)) {\n    continue;\n  }\n\n  // 5. Skip if it's a duplicate within the current incoming batch\n  if (seenInBatch.has(key)) {\n    continue;\n  }\n\n  // If it passes all checks, add it to the final output\n  seenInBatch.add(key);\n  finalOutput.push(item);\n}\n\n/** * If finalOutput has items, they are sent to the next node.\n * If finalOutput is empty, it returns [], which stops the \n * \"Append row in sheet2\" node from executing.\n */\nreturn finalOutput;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        -320
+      ],
+      "id": "d6650d23-9d62-4989-b78e-702a3d2c7d23",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "labelIds": [
+            "Label_7703747452532377886"
+          ]
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -2880,
+        -80
+      ],
+      "id": "f7c8fb16-deb0-47a9-a055-8b9470dd3d0e",
+      "name": "Gmail Trigger1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2kmiEvCU10hLXikl",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $('Gmail Trigger1').item.json.id}}",
+        "simple": false,
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -2480,
+        96
+      ],
+      "id": "1867f0db-68e7-4e50-bd65-b525d8ab85f6",
+      "name": "Get a message1",
+      "webhookId": "0feb5691-f95f-433f-8b26-f08d37f9ce97",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2kmiEvCU10hLXikl",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "attachments ",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -2128,
+        -64
+      ],
+      "id": "0aa1d911-063f-46aa-a4ec-b6f0baa3d71a",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "10_2tFiWq5gdaZIIRz63pErk2newGJJDeYF64DHBqssI",
+          "mode": "list",
+          "cachedResultName": "Daily visit- Tyre",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10_2tFiWq5gdaZIIRz63pErk2newGJJDeYF64DHBqssI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 815218447,
+          "mode": "list",
+          "cachedResultName": "Order",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10_2tFiWq5gdaZIIRz63pErk2newGJJDeYF64DHBqssI/edit#gid=815218447"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "order_date": "={{ $json.order_date }}",
+            "party_name": "={{ $json.party_name }}",
+            "voucher_no": "={{ $json.voucher_no }}",
+            "bill_amount": "={{ $json.bill_amount }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "order_date",
+              "displayName": "order_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "party_name",
+              "displayName": "party_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "voucher_no",
+              "displayName": "voucher_no",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "bill_amount",
+              "displayName": "bill_amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -704,
+        -320
+      ],
+      "id": "50ad4e73-4966-44db-a552-7e769e229e4b",
+      "name": "Append row in sheet",
+      "executeOnce": false,
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2SlEVNbkuAWDQHg",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = [];\n\nfor (const item of items) {\n  const d = item.json;\n\n  const excelDate = d[\"Mittal Corporation (2026-2027)\"];\n  const party = d[\"__EMPTY\"];\n  const vchType = d[\"__EMPTY_1\"];\n  const vchNo = d[\"__EMPTY_2\"];\n  const debit = d[\"__EMPTY_3\"] || 0;\n  const credit = d[\"__EMPTY_4\"] || 0;\n\n  // Skip junk rows\n  if (!party || typeof excelDate !== \"number\") continue;\n\n  // We only want Sales (Tax Invoice) and Receipts\n  if (![\"Sales\", \"Receipt\",\"Credit Note (Sale)\"].includes(vchType)) continue;\n\n  // Convert Excel date\n  const orderDate = new Date((excelDate - 25569) * 86400 * 1000)\n    .toISOString()\n    .split(\"T\")[0];\n\n  output.push({\n    order_date: orderDate,\n    party_name: party,\n    voucher_type: vchType,\n    voucher_no: vchNo || null,\n    bill_amount: vchType === \"Sales\" ? debit : null,\n    payment_received: vchType === \"Receipt\" ||vchType === \"Credit Note (Sale)\"  ? credit : null,\n    payment_mode: vchType === \"Receipt\" ? d[\"__EMPTY_2\"] : null\n  });\n}\n\n\nreturn output.map(o => ({ json: o }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1744,
+        -32
+      ],
+      "id": "c79b0b30-f8a1-4bea-af42-6dbe61156ef7",
+      "name": "Normalising file1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9d229ebd-0b70-451a-ad0c-7c1ab76715e6",
+              "leftValue": "={{ $json.voucher_no }}",
+              "rightValue": "Optional",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1280,
+        -128
+      ],
+      "id": "64d95398-5105-4198-9871-fea101776477",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "10_2tFiWq5gdaZIIRz63pErk2newGJJDeYF64DHBqssI",
+          "mode": "list",
+          "cachedResultName": "Daily visit- Tyre",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10_2tFiWq5gdaZIIRz63pErk2newGJJDeYF64DHBqssI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 815218447,
+          "mode": "list",
+          "cachedResultName": "Order",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10_2tFiWq5gdaZIIRz63pErk2newGJJDeYF64DHBqssI/edit#gid=815218447"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2464,
+        -496
+      ],
+      "id": "a7c56c7e-5470-4456-9339-b19cbba06fff",
+      "name": "Payment_Status",
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2SlEVNbkuAWDQHg",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Normalising file1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "segregation node": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Get a message1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Payment_Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a message1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalising file1": {
+      "main": [
+        [
+          {
+            "node": "segregation node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "79e72199-2655-45c1-a42c-affff6297931",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "260bc1fa4480af8c6a85bf60fef13f2672568dca8f62a2f1f96f4652544a4ffe"
+  },
+  "id": "TOc6wPIvPCqxOtZO",
+  "tags": [
+    {
+      "updatedAt": "2026-04-09T11:50:48.813Z",
+      "createdAt": "2026-04-09T11:50:48.813Z",
+      "id": "mS8ndMHFFYUTqdKq",
+      "name": "Bridgestone"
+    }
+  ]
+}

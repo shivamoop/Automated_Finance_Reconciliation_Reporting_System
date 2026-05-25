@@ -1,0 +1,650 @@
+{
+  "name": "Mittal_Payment_received",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "#### This node will help us to comparing ajay's client from daybook\n",
+        "height": 288,
+        "width": 304
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1008,
+        240
+      ],
+      "id": "2b2a06da-5aca-44ae-a583-80e5b5b93c7c",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## New Entries Logic\n### Fetchng entry from daybook to google sheets for our ajay clients \n\n",
+        "height": 560,
+        "width": 1680
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1504,
+        352
+      ],
+      "typeVersion": 1,
+      "id": "29a21913-736b-4f3e-8610-53bdd62a6ca2",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5f4e8570-1bc3-4844-98c5-58e2b625e9e6",
+              "name": "attachments",
+              "value": "={{ $('Gmail Trigger1').item.binary.keys() }}",
+              "type": "array"
+            },
+            {
+              "id": "856a8a32-061c-49c8-835a-98476a188aee",
+              "name": "message id",
+              "value": "={{ $('Gmail Trigger1').item.json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        96,
+        704
+      ],
+      "id": "389d81da-6dd1-49d8-aed8-f52011a29d18",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "message id",
+              "field2": "id"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        640,
+        848
+      ],
+      "id": "1134d1ab-0b01-4b13-bef6-d84e4f38a4c2",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $('Gmail Trigger1').item.json.id }}",
+        "simple": false,
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        992
+      ],
+      "id": "5fae7282-b40b-4d94-9cc3-a474047b81ab",
+      "name": "Get a message1",
+      "webhookId": "0b9de525-14f2-41e3-adc0-5ef8e8835049",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2kmiEvCU10hLXikl",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "attachments ",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        304,
+        704
+      ],
+      "id": "faf6386f-9688-46c5-9e7d-ccc86b725c0e",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "={{ $json.attachments }}",
+        "options": {
+          "headerRow": true,
+          "range": "=",
+          "rawData": false,
+          "readAsString": false
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        848,
+        848
+      ],
+      "id": "18e63f7f-f05e-4b81-b249-e1d6a0b6587a",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = [];\n\nfor (const item of items) {\n  const d = item.json;\n\n  const excelDate = d[\"Mittal Corporation\"] || d[\"Mittal Enterprises\"];\n  const party = d[\"__EMPTY\"];\n  const vchType = d[\"__EMPTY_1\"];\n  const vchNo = d[\"__EMPTY_2\"];\n  const debit = d[\"__EMPTY_3\"] || 0;\n  const credit = d[\"__EMPTY_4\"] || 0;\n\n  // Skip junk rows\n  if (!party || typeof excelDate !== \"number\") continue;\n\n  // We only want Sales (Tax Invoice) and Receipts\n  if (![\"Sales\", \"Receipt\",\"Credit Note\"].includes(vchType)) continue;\n\n  // Convert Excel date\n  const orderDate = new Date((excelDate - 25569) * 86400 * 1000)\n    .toISOString()\n    .split(\"T\")[0];\n\n  output.push({\n    order_date: orderDate,\n    party_name: party,\n    voucher_type: vchType,\n    voucher_no: vchNo || null,\n    bill_amount: vchType === \"Sales\" ? debit : null,\n    payment_received: vchType === \"Receipt\" ||vchType === \"Credit Note\"  ? credit : null,\n    payment_mode: vchType === \"Receipt\" ? d[\"__EMPTY_2\"] : null\n  });\n}\n\n\nreturn output.map(o => ({ json: o }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        848
+      ],
+      "id": "9e0891df-2699-400d-bedb-364c64d9c9a1",
+      "name": "Normalising file1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ae1454f9-fc13-4a3a-823e-d3317faf220c",
+              "leftValue": "= {{ $json.voucher_type }}",
+              "rightValue": "Sales",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1328,
+        848
+      ],
+      "id": "04f1d02b-0fff-4c79-8ddf-ded152b00c20",
+      "name": "Excluding_clients",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n\n  const party = String(item.json.party_name || \"\")\n    .trim()\n    .toLowerCase();\n\n  const date = new Date(item.json.order_date)\n    .toISOString()\n    .split(\"T\")[0];\n\n  const amount = Math.round(\n    Number(item.json.payment_received) * 100\n  ) / 100;\nconst voucher_number=item.json.voucher_no;\n  return {\n    json: {\n      receipt_key: `${party}|${date}|${amount}|${voucher_number}`,\n      party_name: item.json.party_name,\n      receipt_date: date,\n      receipt_amount: amount,\n      payment_mode: item.json.voucher_no|| \"\",\n      status: \"PENDING\",\n      processed_at: \"\"\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        704
+      ],
+      "id": "d8225ad9-71f4-4e58-8297-a641a5abf60b",
+      "name": "segregation"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1GvWM5dQaP27EPDMAYNMTToETDv9pQthF56rnnuYwlu4",
+          "mode": "list",
+          "cachedResultName": "CRM Mittal Corporation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GvWM5dQaP27EPDMAYNMTToETDv9pQthF56rnnuYwlu4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 604565054,
+          "mode": "list",
+          "cachedResultName": "Payment ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GvWM5dQaP27EPDMAYNMTToETDv9pQthF56rnnuYwlu4/edit#gid=604565054"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -368,
+        112
+      ],
+      "id": "dc880807-75f2-4b4d-b874-54739d2d9680",
+      "name": "Receipt_Ledger",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2SlEVNbkuAWDQHg",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1GvWM5dQaP27EPDMAYNMTToETDv9pQthF56rnnuYwlu4",
+          "mode": "list",
+          "cachedResultName": "CRM Mittal Corporation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GvWM5dQaP27EPDMAYNMTToETDv9pQthF56rnnuYwlu4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 604565054,
+          "mode": "list",
+          "cachedResultName": "Payment ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GvWM5dQaP27EPDMAYNMTToETDv9pQthF56rnnuYwlu4/edit#gid=604565054"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "receipt_key": "={{ $json.receipt_key }}",
+            "party_name": "={{ $json.party_name }}",
+            "receipt_date": "={{ $json.receipt_date }}",
+            "receipt_amount": "={{ $json.receipt_amount }}",
+            "payment_mode": "={{ $json.payment_mode }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "receipt_key",
+              "displayName": "receipt_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "party_name",
+              "displayName": "party_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "receipt_date",
+              "displayName": "receipt_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "receipt_amount",
+              "displayName": "receipt_amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "payment_mode",
+              "displayName": "payment_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Head",
+              "displayName": "Head",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Week",
+              "displayName": "Week",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Month",
+              "displayName": "Month",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2192,
+        704
+      ],
+      "id": "a36acf0f-ede2-4ae1-a07f-97477e7450f4",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2SlEVNbkuAWDQHg",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const newReceipts = $input.all();\nconst ledgerItems = $items(\"Receipt_Ledger\");\n\nconst existingKeys = new Set(\n  ledgerItems.map(i => String(i.json.receipt_key || \"\").trim())\n);\n\nconst seenInBatch = new Set();\nconst finalOutput = [];\nconst debug = [];\n\nfor (const item of newReceipts) {\n\n  const key = String(item.json.receipt_key || \"\").trim();\n  if (!key) continue;\n\n  if (existingKeys.has(key)) {\n    debug.push({ reason: \"Already in Ledger\", key });\n    continue;\n  }\n\n  if (seenInBatch.has(key)) {\n    debug.push({ reason: \"Duplicate in Batch\", key });\n    continue;\n  }\n\n  seenInBatch.add(key);\n  finalOutput.push(item);\n}\n\nreturn finalOutput.length\n  ? finalOutput\n  : debug.map(d => ({ json: d }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1936,
+        672
+      ],
+      "id": "a964975b-aff8-441d-8ecc-9cced812a23a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "labelIds": [
+            "Label_3500027667529776893"
+          ]
+        },
+        "options": {
+          "dataPropertyAttachmentsPrefixName": "attachment_",
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -752,
+        592
+      ],
+      "id": "d6aa94a9-e17e-4608-a09b-60f71fd6364f",
+      "name": "Gmail Trigger1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2kmiEvCU10hLXikl",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Gmail Trigger1": [
+      {
+        "json": {
+          "id": "19df723a1e738c99",
+          "threadId": "19df723a1e738c99",
+          "labelIds": [
+            "Label_3500027667529776893",
+            "UNREAD",
+            "CATEGORY_PERSONAL",
+            "INBOX"
+          ],
+          "sizeEstimate": 37357,
+          "headers": {
+            "delivered-to": "Delivered-To: shivamyadav@oltimo.co.in",
+            "received": "Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])\r\n        by mx.google.com with SMTPS id 6a1803df08f44-8b53d262a29sor59013556d6.9.2026.05.05.00.56.40\r\n        for <SHIVAMYADAV@oltimo.co.in>\r\n        (Google Transport Security);\r\n        Tue, 05 May 2026 00:56:40 -0700 (PDT)",
+            "x-received": "X-Received: by 2002:a05:6214:20c1:b0:89c:4e50:1921 with SMTP id\r\n 6a1803df08f44-8b667e6e343mr234061196d6.26.1777967800085; Tue, 05 May 2026\r\n 00:56:40 -0700 (PDT)",
+            "arc-seal": "ARC-Seal: i=1; a=rsa-sha256; t=1777967800; cv=none;\r\n        d=google.com; s=arc-20240605;\r\n        b=MszCVVlIuGjCpIJWfOb+ippLVNkI5b6rvzwfI5CGlCCQQZWbwzU6NDhbSYnhp9GNyS\r\n         jxyjeZbLiw5WWikXv9C5JWmMZNvdwJ9YuRXEPigjXp1Z5y7b0EM/VOoA9+BGz8YOfukU\r\n         kGacBVs1ckYC3q8Y2MOzVTbhkkekydV44l1IxnNCxaeeEzHazca4IDJV7fvUM+g0BaoL\r\n         HI3ldVpXtuSBresh8NbSJprMzZkF0+1Yx/ok6+7dZ52gahC0PVyzPRqwU8L4B6zDcpOu\r\n         dgfOxk8Tn6rQpAupBaZgsk/ypzuFKRvWbPZw3zgX5yyd7MreEa1YVTnmIMu7WaUEK8e1\r\n         jR+w==",
+            "arc-message-signature": "ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;\r\n        h=to:subject:message-id:date:from:mime-version:dkim-signature;\r\n        bh=rlHXrSqwsC/nLMQma4PCZfPufYjryNnLAKPH9vV+7Mw=;\r\n        fh=B8SKcJ7PlIHfPlBnyCr2xkU6pSZ/DBNWzom9mTpehbs=;\r\n        b=gGE14zMlDtJAt6ctbBbJngAiY8PVtJ3J7I3QT+0SOw0w/xCll/XpAomk7FzoE8amF6\r\n         zJsOedChzsF72kDHvPTZqio+Badqae0kU1N+2VDXE3c/a8akg8kQV2AP0UxYo4kaKs05\r\n         5sHMgQ7zC4akrpNvMYMXQJk8/i4mR5VWW8AqzSsCJjh8EgU8OW6Q0ixRi8jsVdfT77+p\r\n         0WVmNtgp2xR3NcMJvOnv4hTJaxGvZU73vRKSePQSGuoXZanvy8sc9Fe33ICH2dg8/1v0\r\n         FjU0Z0nIXhueezfM8e2+VZEKQu/4t+nSmpwGbJTux2xjwGF9F+PrUcSn4/cdwekwbIVQ\r\n         mcRw==;\r\n        darn=oltimo.co.in",
+            "arc-authentication-results": "ARC-Authentication-Results: i=1; mx.google.com; arc=none",
+            "return-path": "Return-Path: <himanshu@oltimo.co.in>",
+            "received-spf": "Received-SPF: pass (google.com: domain of himanshu@oltimo.co.in designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;",
+            "authentication-results": "Authentication-Results: mx.google.com;\r\n       dkim=pass header.i=@oltimo-co-in.20251104.gappssmtp.com header.s=20251104 header.b=FXkpoMkw;\r\n       arc=pass (i=1);\r\n       spf=pass (google.com: domain of himanshu@oltimo.co.in designates 209.85.220.41 as permitted sender) smtp.mailfrom=himanshu@oltimo.co.in;\r\n       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=oltimo.co.in;\r\n       dara=neutral header.i=@oltimo.co.in",
+            "dkim-signature": "DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;\r\n        d=oltimo-co-in.20251104.gappssmtp.com; s=20251104; t=1777967800; x=1778572600; darn=oltimo.co.in;\r\n        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject\r\n         :date:message-id:reply-to;\r\n        bh=rlHXrSqwsC/nLMQma4PCZfPufYjryNnLAKPH9vV+7Mw=;\r\n        b=FXkpoMkwlMxE4b1qCkUUwd2hV+dj7h2wq0jRn7ASMzoNdOnrXf4tWQfkVQ6R0fX9A+\r\n         yb/AznJYco/b9ITfYFDLokFLLvQvOmyaJXwe3QDRdid9S5l+cW6mLrHR2FbUEgkqU/hu\r\n         KbuFGF/dKxYn9WeoyiMdqmpt184g3/fcay4iw9EAwuZ0xcBgZ5KMT6nle1qhya+0M4wQ\r\n         i9Ea7YQ6PIM0p455kbzUV+E/pFZloaHCV/n+5PQsXJTNIrBbylx3r295npzCIRpCJ/6P\r\n         gmbvjlgwLJQiny+tQtfrGNzZQXU0g/MUER3T79hjA+88SEn4OWxC9vCBj1T6dzHLsw/s\r\n         rg9A==",
+            "x-google-dkim-signature": "X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;\r\n        d=1e100.net; s=20251104; t=1777967800; x=1778572600;\r\n        h=to:subject:message-id:date:from:mime-version:x-gm-gg\r\n         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;\r\n        bh=rlHXrSqwsC/nLMQma4PCZfPufYjryNnLAKPH9vV+7Mw=;\r\n        b=AVKTQ2vytdWlGlp5TurJCnu/lxKlQHWXYkBFgkDb+Gtth/SlG7zeuw3cdPW3a/mgRk\r\n         rJdVLxcvQP8fIp3EPMPPPO8lBT3Xo5Es/A1s5cuU7Ou9fqOB7WI5i9LjyduExo3y899f\r\n         WcQ4mfzNPt7d/o+QhCLIgZITZXF4RD7M2lDgUe4yy6FmVg/fMqJTYhQe05mBcBZxXVy5\r\n         EWJjmpvBuOljoORppErWE/BVbSt/7fQF54Vye2tNrP4GYlp9OXfulw5/hWfDUG/k6LTl\r\n         1UaJMGQhsqkcoUeEYesMOJZDAnvOQjSzzVsoQBSJsuw/F/EUTiW3zPAHnJCNAutEG0yl\r\n         vPFg==",
+            "x-gm-message-state": "X-Gm-Message-State: AOJu0YzIcFxxYEL1BuYdjr/b2kftN7eOZa503m8tnI4BYUnoMKRsFnjt\r\n\tYoC7yvshUSpJ+yT4vTAplkt8/Q8vmbRFq54h3bQLaoc14YHEC78jPf41xgbGXAT8HyGWbXppBwn\r\n\tLQNuGLvn75l4etvihJoy8R9PEReI6K8EAuaHUQIP4J/B1vqvQW9LenOY=",
+            "x-gm-gg": "X-Gm-Gg: AeBDievaom206ABJWT/cDXURRt43a1WwBoBQu8b3iMxW7vmLtzkh+SntonWKxqRfRxy\r\n\t/Td0NPPBT+0aoavOtZLZgvltpxL07zwz/3FxqSVVzWIJrGDjn6LuP6X6ffAEE75JfAHJxtaaQzz\r\n\tJ2WLNtNYzGouP2ytynL/oh3BTxrNtugzTtOy0kpNsHgEON/GFFmk4lxQdMOsTKR0Ml+Ya4qNZVt\r\n\tU7oSqwiZA0IuRh9N9JCWfx1r9Ysxf1BjIN0Lo2aAQDBd5ePTyqkz6tRd7gv8CS3unxgVQG5IaW/\r\n\t5pDrQBSay3KBMy2fhoW+oG1BYvZztLlNFM0QSOMY06mHDWb/LTkRhrNmqVx98mNzBp8Hvx/T97O\r\n\tbdnh74cYF",
+            "mime-version": "MIME-Version: 1.0",
+            "from": "From: himanshu Kashyap <himanshu@oltimo.co.in>",
+            "date": "Date: Tue, 5 May 2026 13:26:26 +0530",
+            "x-gm-features": "X-Gm-Features: AVHnY4I7YfKmavVDtO2hK04xSKB6vQVpij6xJ9XZ9iCi6aVKSmZCSzzAmQ3Yydk",
+            "message-id": "Message-ID: <CAKqYc_7EV2wqPoZDyuBM8Z056yigaoFT4XVBs07ryTeiDYcEdg@mail.gmail.com>",
+            "subject": "Subject: dwn mittal",
+            "to": "To: Shivam Yadav <SHIVAMYADAV@oltimo.co.in>",
+            "content-type": "Content-Type: multipart/mixed; boundary=\"00000000000025908706510d63f2\""
+          },
+          "html": "<div dir=\"ltr\"><br></div>\n",
+          "text": "\n",
+          "textAsHtml": "<p></p>",
+          "subject": "dwn mittal",
+          "date": "2026-05-05T07:56:26.000Z",
+          "to": {
+            "value": [
+              {
+                "address": "SHIVAMYADAV@oltimo.co.in",
+                "name": "Shivam Yadav"
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><span class=\"mp_address_name\">Shivam Yadav</span> &lt;<a href=\"mailto:SHIVAMYADAV@oltimo.co.in\" class=\"mp_address_email\">SHIVAMYADAV@oltimo.co.in</a>&gt;</span>",
+            "text": "\"Shivam Yadav\" <SHIVAMYADAV@oltimo.co.in>"
+          },
+          "from": {
+            "value": [
+              {
+                "address": "himanshu@oltimo.co.in",
+                "name": "himanshu Kashyap"
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><span class=\"mp_address_name\">himanshu Kashyap</span> &lt;<a href=\"mailto:himanshu@oltimo.co.in\" class=\"mp_address_email\">himanshu@oltimo.co.in</a>&gt;</span>",
+            "text": "\"himanshu Kashyap\" <himanshu@oltimo.co.in>"
+          },
+          "messageId": "<CAKqYc_7EV2wqPoZDyuBM8Z056yigaoFT4XVBs07ryTeiDYcEdg@mail.gmail.com>"
+        },
+        "binary": {
+          "attachment_0": {
+            "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "fileExtension": "xlsx",
+            "data": "filesystem-v2",
+            "fileName": "M.C WITHOUT NARRATION 4-5-26.xlsx",
+            "id": "filesystem-v2:workflows/2O7txKpctuUFXeHb/executions/temp/binary_data/e8cd546d-0918-44ea-b97e-975d1b5a877c",
+            "fileSize": "11.4 kB",
+            "bytes": 11390
+          },
+          "attachment_1": {
+            "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "fileExtension": "xlsx",
+            "data": "filesystem-v2",
+            "fileName": "M.E 04-05-2026 WITHOUT NARRATION.xlsx",
+            "id": "filesystem-v2:workflows/2O7txKpctuUFXeHb/executions/temp/binary_data/46d53401-ecac-4ede-adc0-4c526928f1f2",
+            "fileSize": "10.1 kB",
+            "bytes": 10146
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a message1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "Normalising file1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalising file1": {
+      "main": [
+        [
+          {
+            "node": "Excluding_clients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Excluding_clients": {
+      "main": [
+        [],
+        [
+          {
+            "node": "segregation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "segregation": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receipt_Ledger": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Receipt_Ledger",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get a message1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "286cc05e-1dbd-42b7-8e88-3107e9d20ebe",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "260bc1fa4480af8c6a85bf60fef13f2672568dca8f62a2f1f96f4652544a4ffe"
+  },
+  "id": "2O7txKpctuUFXeHb",
+  "tags": [
+    {
+      "updatedAt": "2026-03-02T06:40:39.952Z",
+      "createdAt": "2026-03-02T06:40:39.952Z",
+      "id": "80MU5hac8XQBCsMz",
+      "name": "milttal"
+    }
+  ]
+}

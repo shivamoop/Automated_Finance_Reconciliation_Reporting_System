@@ -1,0 +1,399 @@
+{
+  "name": "BS_Purchase_Entry",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5f4e8570-1bc3-4844-98c5-58e2b625e9e6",
+              "name": "attachments",
+              "value": "={{ $('Gmail Trigger1').item.binary.keys() }}",
+              "type": "array"
+            },
+            {
+              "id": "856a8a32-061c-49c8-835a-98476a188aee",
+              "name": "message id",
+              "value": "={{ $('Gmail Trigger1').item.json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        96,
+        192
+      ],
+      "id": "0d2ee3ea-3284-4b3e-9381-fc3f4713d0ec",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "message id",
+              "field2": "id"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        416,
+        352
+      ],
+      "id": "c1b56794-f99f-4ca0-a2f2-971689e309b7",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "labelIds": [
+            "Label_8186359773575679041"
+          ]
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -304,
+        352
+      ],
+      "id": "e7ffdd79-13de-4af0-9094-c747cfc02533",
+      "name": "Gmail Trigger1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2kmiEvCU10hLXikl",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $('Gmail Trigger1').item.json.id}}",
+        "simple": false,
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        192,
+        576
+      ],
+      "id": "11f9380d-3747-4ed4-944d-d990ca1116db",
+      "name": "Get a message1",
+      "webhookId": "ac9dfdda-d2b1-488c-92c7-2e7fa20f5c8e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2kmiEvCU10hLXikl",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "attachments ",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        256,
+        192
+      ],
+      "id": "b2b10985-2c43-4172-9a48-b6fcecbc1e10",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "={{ $json.attachments }}",
+        "options": {
+          "headerRow": true,
+          "range": "=",
+          "rawData": false,
+          "readAsString": false
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        592,
+        448
+      ],
+      "id": "385a1e71-e9be-4a69-acb7-572bd8aab516",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Excel serial → ISO date converter\nfunction excelDateToISO(serial) {\n  if (typeof serial !== \"number\" || isNaN(serial)) return serial;\n  if (serial < 1 || serial > 100000) return serial; // Guard rail\n  const base = new Date(Date.UTC(1899, 11, 30));\n  return new Date(base.getTime() + serial * 86400000).toISOString().slice(0, 10);\n}\n\n// Variables to track the transaction context across multiple rows\nlet currentDate = null;\nlet currentParty = null;\nconst output = [];\n\n// Loop through rows (starting after the headers at index 7)\nfor (let i = 7; i < items.length; i++) {\n  const row = items[i].json;\n\n  // 1. Identify the main Voucher header row\n  const vchType = row[\"__EMPTY_5\"]; \n  if (vchType === \"Purchase\") {\n    currentDate = excelDateToISO(row[\"Mittal Corporation (2026-2027)\"]);\n    currentParty = row[\"__EMPTY\"];\n    continue; // Skip directly to the item lines below\n  }\n\n  // 2. Extract potential item breakdown details\n  const product = row[\"__EMPTY\"] ? String(row[\"__EMPTY\"]).trim() : \"\";\n  const quantity = row[\"__EMPTY_1\"];\n  const priceUnit = row[\"__EMPTY_2\"];\n  const orderValue = row[\"__EMPTY_3\"];\n\n  // 🛠️ FIX 1: List all words that indicate an accounting/reference row instead of an item\n  const ignoredKeywords = [\"New Ref\", \"PURCHASE - GST\", \"CGST\", \"SGST\", \"ROUND OFF\", \"Particulars\"];\n  const isIgnoredRow = ignoredKeywords.some(keyword => product.includes(keyword)) || !product;\n\n  // 🛠️ FIX 2: Ensure the price field looks like a real rate breakdown (e.g., contains a unit slash like \"/PCS\")\n  const hasValidRateFormat = priceUnit && String(priceUnit).includes(\"/\");\n\n  // Only push to output if it's a legitimate product row\n  if (currentDate && currentParty && !isIgnoredRow && hasValidRateFormat) {\n    output.push({\n      json: {\n        \"Date\": currentDate,\n        \"Party name\": currentParty,\n        \"Product\": product,\n        \"quantity\": quantity,\n        \"price/unit\": priceUnit,\n        \"order value\": orderValue\n      }\n    });\n  }\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        448
+      ],
+      "id": "e6292bfa-98e0-48b8-965e-fa97799ef515",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "10_2tFiWq5gdaZIIRz63pErk2newGJJDeYF64DHBqssI",
+          "mode": "list",
+          "cachedResultName": "Daily visit- Tyre",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10_2tFiWq5gdaZIIRz63pErk2newGJJDeYF64DHBqssI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 521974296,
+          "mode": "list",
+          "cachedResultName": "Purchase_Details",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10_2tFiWq5gdaZIIRz63pErk2newGJJDeYF64DHBqssI/edit#gid=521974296"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Party name",
+              "displayName": "Party name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Product",
+              "displayName": "Product",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "quantity",
+              "displayName": "quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "price/unit",
+              "displayName": "price/unit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "order value",
+              "displayName": "order value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1648,
+        304
+      ],
+      "id": "a113e3b0-831f-4d18-98bb-ac2179d2ae90",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2SlEVNbkuAWDQHg",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = items.map(i => i.json);\n\nrows.sort((a, b) => {\n  const da = new Date(a[\"order date\"]);\n  const db = new Date(b[\"order date\"]);\n\n  if (isNaN(da) && isNaN(db)) return 0;\n  if (isNaN(da)) return 1;\n  if (isNaN(db)) return -1;\n\n  return da - db;\n});\n\nreturn rows.map(r => ({ json: r }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1328,
+        448
+      ],
+      "id": "995eee0c-8849-4bd0-80d1-1fd0a6d1cd2c",
+      "name": "Code in JavaScript2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Get a message1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a message1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "dynamic",
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner",
+    "saveExecutionProgress": true
+  },
+  "versionId": "ff2d9b22-deed-4844-a01f-674681b45614",
+  "meta": {
+    "instanceId": "260bc1fa4480af8c6a85bf60fef13f2672568dca8f62a2f1f96f4652544a4ffe"
+  },
+  "id": "1GNUEGj0FJq7QI9s",
+  "tags": [
+    {
+      "updatedAt": "2026-04-09T11:50:48.813Z",
+      "createdAt": "2026-04-09T11:50:48.813Z",
+      "id": "mS8ndMHFFYUTqdKq",
+      "name": "Bridgestone"
+    }
+  ]
+}
